@@ -1,0 +1,225 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Additives - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Additives</h2>
+        <a href="{{ url_for('admin.add_additive') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Additive
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Filter</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="searchInput" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search by name or code...">
+                </div>
+                <div class="col-md-3">
+                    <label for="categoryFilter" class="form-label">Category</label>
+                    <select class="form-select" id="categoryFilter">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="naturalFilter" class="form-label">Origin</label>
+                    <select class="form-select" id="naturalFilter">
+                        <option value="">All</option>
+                        <option value="true">Natural</option>
+                        <option value="false">Synthetic</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="verifiedFilter" class="form-label">Status</label>
+                    <select class="form-select" id="verifiedFilter">
+                        <option value="">All</option>
+                        <option value="true">Verified</option>
+                        <option value="false">Unverified</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped" id="additivesTable">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Origin</th>
+                            <th>Vegan</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for additive in additives %}
+                        <tr>
+                            <td>{{ additive.code }}</td>
+                            <td>{{ additive.name }}</td>
+                            <td>{{ additive.category_name or 'Uncategorized' }}</td>
+                            <td>
+                                {% if additive.is_natural %}
+                                <span class="badge bg-success">Natural</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Synthetic</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if additive.is_vegan %}
+                                <span class="badge bg-success">Vegan</span>
+                                {% else %}
+                                <span class="badge bg-danger">Non-Vegan</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if additive.is_verified %}
+                                <span class="badge bg-success">Verified</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Unverified</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin.edit_additive', id=additive.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteAdditiveModal{{ additive.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteAdditiveModal{{ additive.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the additive <strong>{{ additive.code }} - {{ additive.name }}</strong>?
+                                                This action cannot be undone.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('admin.delete_additive', id=additive.id) }}" method="post">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No additives found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const naturalFilter = document.getElementById('naturalFilter');
+    const verifiedFilter = document.getElementById('verifiedFilter');
+    const table = document.getElementById('additivesTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const categoryValue = categoryFilter.value.toLowerCase();
+        const naturalValue = naturalFilter.value.toLowerCase();
+        const verifiedValue = verifiedFilter.value.toLowerCase();
+        
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td');
+            if (cells.length === 0) continue; // Skip empty rows
+            
+            // Check text search (name and code)
+            let textMatch = false;
+            if (searchTerm === '') {
+                textMatch = true;
+            } else {
+                const codeCell = cells[0].textContent.toLowerCase();
+                const nameCell = cells[1].textContent.toLowerCase();
+                textMatch = codeCell.includes(searchTerm) || nameCell.includes(searchTerm);
+            }
+            
+            // Check category filter
+            let categoryMatch = true;
+            if (categoryValue !== '') {
+                const categoryCell = cells[2].textContent.toLowerCase();
+                categoryMatch = categoryCell.includes(categoryValue);
+            }
+            
+            // Check natural/synthetic filter
+            let naturalMatch = true;
+            if (naturalValue !== '') {
+                const naturalCell = cells[3].textContent.toLowerCase();
+                naturalMatch = (
+                    (naturalValue === 'true' && naturalCell.includes('natural')) || 
+                    (naturalValue === 'false' && naturalCell.includes('synthetic'))
+                );
+            }
+            
+            // Check verified filter
+            let verifiedMatch = true;
+            if (verifiedValue !== '') {
+                const verifiedCell = cells[5].textContent.toLowerCase();
+                verifiedMatch = (
+                    (verifiedValue === 'true' && verifiedCell.includes('verified')) || 
+                    (verifiedValue === 'false' && verifiedCell.includes('unverified'))
+                );
+            }
+            
+            // Show row if all filters match
+            if (textMatch && categoryMatch && naturalMatch && verifiedMatch) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+
+    // Add event listeners to all filter controls
+    searchInput.addEventListener('keyup', filterTable);
+    categoryFilter.addEventListener('change', filterTable);
+    naturalFilter.addEventListener('change', filterTable);
+    verifiedFilter.addEventListener('change', filterTable);
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Edit Base Ingredient - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Base Ingredient</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form action="{{ url_for('admin.edit_base_ingredient', id=ingredient.id) }}" method="post">
+        <div class="mb-3">
+            <label for="name" class="form-label">Ingredient Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ ingredient.name }}">
+        </div>
+        <div class="mb-3">
+            <label for="name_hindi" class="form-label">Name (Hindi)</label>
+            <input type="text" class="form-control" id="name_hindi" name="name_hindi" value="{{ ingredient.name_hindi }}">
+        </div>
+        <div class="mb-3">
+            <label for="name_gujarati" class="form-label">Name (Gujarati)</label>
+            <input type="text" class="form-control" id="name_gujarati" name="name_gujarati" value="{{ ingredient.name_gujarati }}">
+        </div>
+        <div class="mb-3">
+            <label for="name_marathi" class="form-label">Name (Marathi)</label>
+            <input type="text" class="form-control" id="name_marathi" name="name_marathi" value="{{ ingredient.name_marathi }}">
+        </div>
+        <div class="mb-3">
+            <label for="name_tamil" class="form-label">Name (Tamil)</label>
+            <input type="text" class="form-control" id="name_tamil" name="name_tamil" value="{{ ingredient.name_tamil }}">
+        </div>
+        <div class="mb-3">
+            <label for="category_id" class="form-label">Category</label>
+            <select class="form-select" id="category_id" name="category_id">
+                <option value="">Select a category</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if ingredient.category_id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified" {% if ingredient.is_verified %}checked{% endif %}>
+            <label class="form-check-label" for="is_verified">Verified</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Ingredient</button>
+        <a href="{{ url_for('admin.base_ingredients') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

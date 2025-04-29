@@ -1,0 +1,86 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Edit Additive - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Edit Additive</h2>
+        <a href="{{ url_for('admin.additives') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Additives
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="code" class="form-label">Code *</label>
+                        <input type="text" class="form-control" id="code" name="code" value="{{ additive.code }}" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="name" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ additive.name }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select class="form-select" id="category_id" name="category_id">
+                            <option value="">- Select Category -</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if additive.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="2">{{ additive.description or '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="health_implications" class="form-label">Health Implications</label>
+                    <textarea class="form-control" id="health_implications" name="health_implications" rows="3">{{ additive.health_implications or '' }}</textarea>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_natural" name="is_natural" {% if additive.is_natural %}checked{% endif %}>
+                            <label class="form-check-label" for="is_natural">Natural Origin</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_vegan" name="is_vegan" {% if additive.is_vegan %}checked{% endif %}>
+                            <label class="form-check-label" for="is_vegan">Vegan</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified" {% if additive.is_verified %}checked{% endif %}>
+                            <label class="form-check-label" for="is_verified">Verified</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('admin.additives') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

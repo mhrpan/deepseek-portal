@@ -1,0 +1,199 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}{{ recipe.title }} - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>{{ recipe.title }}</h2>
+        <div>
+            <a href="{{ url_for('admin.recipes') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Recipes
+            </a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteRecipeModal">
+                <i class="bi bi-trash"></i> Delete Recipe
+            </button>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recipe Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Created By:</strong> {{ recipe.creator_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Cuisine:</strong> {{ recipe.cuisine_name or 'Uncategorized' }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Servings:</strong> {{ recipe.servings or 'Not specified' }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Prep Time:</strong> {% if recipe.prep_time_minutes %}{{ recipe.prep_time_minutes }} mins{% else %}Not specified{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Cook Time:</strong> {% if recipe.cook_time_minutes %}{{ recipe.cook_time_minutes }} mins{% else %}Not specified{% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Created:</strong> {{ recipe.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Last Updated:</strong> {{ recipe.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Privacy:</strong> 
+                            {% if recipe.is_private %}
+                            <span class="badge bg-warning">Private</span>
+                            {% else %}
+                            <span class="badge bg-success">Public</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if recipe.description %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Description:</strong>
+                            <p class="mt-2">{{ recipe.description }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Ingredients</h5>
+                </div>
+                <div class="card-body">
+                    {% if ingredients %}
+                    <div class="list-group">
+                        {% for ingredient in ingredients %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ ingredient.quantity or '' }}</strong> 
+                                    {{ ingredient.brand_name }} {{ ingredient.ingredient_name }}
+                                </div>
+                            </div>
+                            {% if ingredient.notes %}
+                            <small class="text-muted d-block mt-1">{{ ingredient.notes }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No ingredients found for this recipe.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Cooking Steps</h5>
+                </div>
+                <div class="card-body">
+                    {% if steps %}
+                    <div class="list-group">
+                        {% for step in steps %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">Step {{ step.step_number }}</h6>
+                            <p>{{ step.description }}</p>
+                            {% if step.media_url %}
+                            <div class="mt-2">
+                                <img src="http://localhost:3000{{ step.media_url }}" alt="Step {{ step.step_number }}" class="img-fluid rounded" style="max-height: 200px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No cooking steps found for this recipe.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recipe Image</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if recipe.image_url %}
+                        <img src="http://localhost:3000{{ recipe.image_url }}" alt="{{ recipe.title }}" class="img-fluid rounded">
+                    {% else %}
+                    <div class="p-5 bg-light rounded text-center">
+                        <i class="bi bi-image" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No image available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Debug Information (remove in production) -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Image Debug Info</h5>
+                </div>
+                <div class="card-body">
+                    <strong>Recipe Image URL:</strong>
+                    <code class="d-block mb-2">{{ recipe.image_url or 'None' }}</code>
+                    
+                    <strong>Fixed Recipe Image URL:</strong>
+                    <code class="d-block mb-2">http://localhost:3000{{ recipe.image_url or '' }}</code>
+                    
+                    {% if steps and steps|length > 0 and steps[0].media_url %}
+                    <strong>First Step Media URL:</strong>
+                    <code class="d-block mb-2">{{ steps[0].media_url }}</code>
+                    
+                    <strong>Fixed Step Media URL:</strong>
+                    <code class="d-block">http://localhost:3000{{ steps[0].media_url }}</code>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the recipe <strong>{{ recipe.title }}</strong>?
+                This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('admin.delete_recipe', id=recipe.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

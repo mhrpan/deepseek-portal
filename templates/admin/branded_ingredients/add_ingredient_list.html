@@ -1,0 +1,48 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Add Ingredient List - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Add Ingredient List</h2>
+        <a href="{{ url_for('admin.manage_product_additives', id=product.id) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Additives
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{{ product.brand_name }} {{ product.ingredient_name }}</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('admin.add_ingredient_list', id=product.id) }}" method="post">
+                <div class="mb-3">
+                    <label for="ingredients_text" class="form-label">Ingredient List *</label>
+                    <textarea class="form-control" id="ingredients_text" name="ingredients_text" rows="6" required placeholder="Enter the full ingredient list as shown on the product..."></textarea>
+                    <div class="form-text">Enter the ingredient list exactly as it appears on the product packaging.</div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_verified" name="is_verified" checked>
+                    <label class="form-check-label" for="is_verified">Mark as verified</label>
+                    <div class="form-text">Check this box if you've verified this ingredient list is accurate.</div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('admin.manage_product_additives', id=product.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Base Ingredients - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Base Ingredients</h2>
+        <a href="{{ url_for('admin.add_base_ingredient') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Base Ingredient
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Filter</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchInput" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Type to search...">
+                </div>
+                <div class="col-md-4">
+                    <label for="categoryFilter" class="form-label">Category</label>
+                    <select class="form-select" id="categoryFilter">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="verifiedFilter" class="form-label">Status</label>
+                    <select class="form-select" id="verifiedFilter">
+                        <option value="">All</option>
+                        <option value="verified">Verified</option>
+                        <option value="unverified">Unverified</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped" id="ingredientsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Hindi</th>
+                            <th>Gujarati</th>
+                            <th>Marathi</th>
+                            <th>Tamil</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ingredient in ingredients %}
+                        <tr>
+                            <td>{{ ingredient.name }}</td>
+                            <td>{{ ingredient.category_name or 'Uncategorized' }}</td>
+                            <td>
+                                {% if ingredient.is_verified %}
+                                <span class="badge bg-success">Verified</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Unverified</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ ingredient.name_hindi or '-' }}</td>
+                            <td>{{ ingredient.name_gujarati or '-' }}</td>
+                            <td>{{ ingredient.name_marathi or '-' }}</td>
+                            <td>{{ ingredient.name_tamil or '-' }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin.edit_base_ingredient', id=ingredient.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteIngredientModal{{ ingredient.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteIngredientModal{{ ingredient.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the ingredient <strong>{{ ingredient.name }}</strong>?
+                                                This action cannot be undone.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('admin.delete_base_ingredient', id=ingredient.id) }}" method="post">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">No ingredients found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const verifiedFilter = document.getElementById('verifiedFilter');
+    const table = document.getElementById('ingredientsTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const categoryValue = categoryFilter.value.toLowerCase();
+        const verifiedValue = verifiedFilter.value.toLowerCase();
+        
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td');
+            if (cells.length === 0) continue; // Skip empty rows
+            
+            // Check text search
+            let textMatch = false;
+            if (searchTerm === '') {
+                textMatch = true;
+            } else {
+                for (let j = 0; j < cells.length - 1; j++) { // Skip the Actions column
+                    const cellText = cells[j].textContent.toLowerCase();
+                    if (cellText.indexOf(searchTerm) > -1) {
+                        textMatch = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Check category filter
+            let categoryMatch = true;
+            if (categoryValue !== '') {
+                const categoryCell = cells[1].textContent.toLowerCase();
+                categoryMatch = (categoryCell === categoryValue);
+            }
+            
+            // Check verified filter
+            let verifiedMatch = true;
+            if (verifiedValue !== '') {
+                const verifiedCell = cells[2].textContent.toLowerCase();
+                verifiedMatch = (
+                    (verifiedValue === 'verified' && verifiedCell.includes('verified')) || 
+                    (verifiedValue === 'unverified' && verifiedCell.includes('unverified'))
+                );
+            }
+            
+            // Show row if all filters match
+            if (textMatch && categoryMatch && verifiedMatch) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+
+    // Add event listeners to all filter controls
+    searchInput.addEventListener('keyup', filterTable);
+    categoryFilter.addEventListener('change', filterTable);
+    verifiedFilter.addEventListener('change', filterTable);
+});
+</script>
+{% endblock %}
+{% endblock %}

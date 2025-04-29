@@ -1,0 +1,58 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Edit Ingredient List - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Edit Ingredient List</h2>
+        <a href="{{ url_for('admin.manage_product_additives', id=product.id) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Additives
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{{ product.brand_name }} {{ product.ingredient_name }}</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('admin.edit_ingredient_list', id=product.id) }}" method="post">
+                <div class="mb-3">
+                    <label for="ingredients_text" class="form-label">Ingredient List *</label>
+                    <textarea class="form-control" id="ingredients_text" name="ingredients_text" rows="6" required>{{ ingredient_list.ingredients_text }}</textarea>
+                    <div class="form-text">Enter the ingredient list exactly as it appears on the product packaging.</div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_verified" name="is_verified" {% if ingredient_list.is_verified %}checked{% endif %}>
+                    <label class="form-check-label" for="is_verified">Mark as verified</label>
+                    <div class="form-text">Check this box if you've verified this ingredient list is accurate.</div>
+                </div>
+                {% if ingredient_list.extracted_from_image %}
+                <div class="mb-3">
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill me-2"></i> 
+                            <div>This ingredient list was automatically extracted from an image.</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('admin.manage_product_additives', id=product.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

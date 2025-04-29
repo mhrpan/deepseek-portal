@@ -1,0 +1,65 @@
+{% extends 'admin/dashboard.html' %}
+
+{% block title %}Edit Cuisine - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Edit Cuisine</h2>
+        <a href="{{ url_for('admin.cuisines') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Cuisines
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name (English) *</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ cuisine.name }}" required>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name_hindi" class="form-label">Hindi Name</label>
+                        <input type="text" class="form-control" id="name_hindi" name="name_hindi" value="{{ cuisine.name_hindi or '' }}">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="name_gujarati" class="form-label">Gujarati Name</label>
+                        <input type="text" class="form-control" id="name_gujarati" name="name_gujarati" value="{{ cuisine.name_gujarati or '' }}">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name_marathi" class="form-label">Marathi Name</label>
+                        <input type="text" class="form-control" id="name_marathi" name="name_marathi" value="{{ cuisine.name_marathi or '' }}">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="name_tamil" class="form-label">Tamil Name</label>
+                        <input type="text" class="form-control" id="name_tamil" name="name_tamil" value="{{ cuisine.name_tamil or '' }}">
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('admin.cuisines') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

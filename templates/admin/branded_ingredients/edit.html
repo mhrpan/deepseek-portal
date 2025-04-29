@@ -1,0 +1,73 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Edit Branded Ingredient - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+   <div class="d-flex justify-content-between mb-3">
+       <h2>Edit Branded Ingredient</h2>
+       <a href="{{ url_for('admin.branded_ingredients') }}" class="btn btn-secondary">
+           <i class="bi bi-arrow-left"></i> Back to Branded Ingredients
+       </a>
+   </div>
+
+   {% with messages = get_flashed_messages(with_categories=true) %}
+       {% if messages %}
+           {% for category, message in messages %}
+               <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                   {{ message }}
+                   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+               </div>
+           {% endfor %}
+       {% endif %}
+   {% endwith %}
+
+   <div class="card">
+       <div class="card-body">
+           <div class="row mb-4">
+               <div class="col-md-6">
+                   <h5>Base Ingredient</h5>
+                   <p class="mb-0">{{ branded_ingredient.ingredient_name }}</p>
+               </div>
+               <div class="col-md-6">
+                   <h5>Brand</h5>
+                   <p class="mb-0">{{ branded_ingredient.brand_name }}</p>
+               </div>
+           </div>
+           
+           <form method="post" enctype="multipart/form-data">
+               <div class="mb-3">
+                   <label for="description" class="form-label">Description (Optional)</label>
+                   <textarea class="form-control" id="description" name="description" rows="3">{{ branded_ingredient.description or '' }}</textarea>
+                   <div class="form-text">Add any special notes about this branded ingredient</div>
+               </div>
+               
+               {% if branded_ingredient.image_url %}
+               <div class="mb-3">
+                   <label class="form-label">Current Image</label>
+                   <div>
+                       <img src="{{ branded_ingredient.image_url }}" alt="Product Image" class="img-thumbnail" style="max-height: 200px;">
+                   </div>
+               </div>
+               {% endif %}
+               
+               <div class="mb-3">
+                   <label for="image" class="form-label">{{ 'Update' if branded_ingredient.image_url else 'Add' }} Product Image (Optional)</label>
+                   <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                   <div class="form-text">Upload a new image of the product</div>
+               </div>
+               
+               <div class="mb-3 form-check">
+                   <input type="checkbox" class="form-check-input" id="is_verified" name="is_verified" {% if branded_ingredient.is_verified %}checked{% endif %}>
+                   <label class="form-check-label" for="is_verified">Mark as verified</label>
+                   <div class="form-text">Verified branded ingredients appear in user searches by default</div>
+               </div>
+               
+               <div class="d-flex justify-content-between">
+                   <a href="{{ url_for('admin.branded_ingredients') }}" class="btn btn-secondary">Cancel</a>
+                   <button type="submit" class="btn btn-primary">Update</button>
+               </div>
+           </form>
+       </div>
+   </div>
+</div>
+{% endblock %}

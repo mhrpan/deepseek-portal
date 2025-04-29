@@ -1,0 +1,73 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Add Base Ingredient - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Add Base Ingredient</h3>
+                </div>
+                <div class="card-body">
+                    {# Display any flash messages #}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form action="{{ url_for('admin.add_base_ingredient') }}" method="post">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Ingredient Name</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Enter ingredient name" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name_hindi" class="form-label">Name (Hindi)</label>
+                                <input type="text" class="form-control" id="name_hindi" name="name_hindi" placeholder="Enter Hindi name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="name_gujarati" class="form-label">Name (Gujarati)</label>
+                                <input type="text" class="form-control" id="name_gujarati" name="name_gujarati" placeholder="Enter Gujarati name">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name_marathi" class="form-label">Name (Marathi)</label>
+                                <input type="text" class="form-control" id="name_marathi" name="name_marathi" placeholder="Enter Marathi name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="name_tamil" class="form-label">Name (Tamil)</label>
+                                <input type="text" class="form-control" id="name_tamil" name="name_tamil" placeholder="Enter Tamil name">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">Category</label>
+                            <select class="form-select" id="category_id" name="category_id">
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified">
+                            <label class="form-check-label" for="is_verified">Verified</label>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary me-2">Add Ingredient</button>
+                            <a href="{{ url_for('admin.base_ingredients') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

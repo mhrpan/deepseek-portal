@@ -1,0 +1,301 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Manage Nutritional Information - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Manage Nutrition: {{ product.brand_name }} {{ product.ingredient_name }}</h2>
+        <div>
+            <a href="{{ url_for('admin.branded_ingredients') }}" class="btn btn-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <a href="{{ url_for('admin.edit_branded_ingredient', id=product.id) }}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit Product
+            </a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Serving Information -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Serving Information</h5>
+        </div>
+        <div class="card-body">
+            {% if serving_info %}
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Serving Size:</strong> {{ serving_info.serving_size }} {{ serving_info.serving_unit }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Servings Per Container:</strong> {{ serving_info.servings_per_container or 'Not specified' }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('admin.edit_serving_info', id=product.id) }}" class="btn btn-primary">
+                Edit Serving Information
+            </a>
+            {% else %}
+            <div class="alert alert-info">No serving information has been added yet.</div>
+            <a href="{{ url_for('admin.add_serving_info', id=product.id) }}" class="btn btn-primary">
+                Add Serving Information
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add Nutrient Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Add Nutrient</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('admin.add_product_nutrient', id=product.id) }}" method="post">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nutrient_category" class="form-label">Nutrient Category</label>
+                        <select class="form-select" id="nutrient_category">
+                            <option value="">All Categories</option>
+                            {% for category in nutrient_categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="nutrient_id" class="form-label">Nutrient *</label>
+                        <select class="form-select" id="nutrient_id" name="nutrient_id" required>
+                            <option value="">- Select a nutrient -</option>
+                            {% for nutrient in available_nutrients %}
+                            <option value="{{ nutrient.id }}" data-category="{{ nutrient.category_id }}" data-unit="{{ nutrient.unit }}" data-daily-value="{{ nutrient.daily_value }}">
+                                {{ nutrient.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mt-1">
+                    <div class="col-md-4">
+                        <label for="amount" class="form-label">Amount *</label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" min="0" class="form-control" id="amount" name="amount" required>
+                            <span class="input-group-text" id="unit-display">g</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="percent_daily_value" class="form-label">% Daily Value</label>
+                        <div class="input-group">
+                            <input type="number" step="0.1" min="0" class="form-control" id="percent_daily_value" name="percent_daily_value">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="per_serving" class="form-label">Measurement Basis</label>
+                        <select class="form-select" id="per_serving" name="per_serving">
+                            <option value="true" selected>Per Serving</option>
+                            <option value="false">Per 100g/ml</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">Add Nutrient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Current Nutrients Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Nutritional Information</h5>
+        </div>
+        <div class="card-body">
+            {% if product_nutrients %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nutrient</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>% Daily Value</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in product_nutrients %}
+                        <tr>
+                            <td>{{ item.nutrient_name }}</td>
+                            <td>{{ item.category_name }}</td>
+                            <td>{{ item.amount }} {{ item.unit }} {% if not item.per_serving %}<small>(per 100g/ml)</small>{% endif %}</td>
+                            <td>{{ item.percent_daily_value }}%</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary edit-nutrient-btn" 
+                                            data-id="{{ item.id }}"
+                                            data-nutrient="{{ item.nutrient_name }}"
+                                            data-amount="{{ item.amount }}"
+                                            data-percent="{{ item.percent_daily_value }}"
+                                            data-per-serving="{{ item.per_serving }}"
+                                            data-bs-toggle="modal" data-bs-target="#editNutrientModal">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form action="{{ url_for('admin.delete_product_nutrient', id=product.id, nutrient_id=item.id) }}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="alert alert-info">No nutritional information has been added yet.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Edit Nutrient Modal -->
+<div class="modal fade" id="editNutrientModal" tabindex="-1" aria-labelledby="editNutrientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('admin.edit_product_nutrient', id=product.id) }}" method="post">
+                <input type="hidden" id="edit_nutrient_id" name="nutrient_id">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editNutrientModalLabel">Edit Nutrient</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_nutrient_name" class="form-label">Nutrient</label>
+                        <input type="text" class="form-control" id="edit_nutrient_name" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_amount" class="form-label">Amount</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="edit_amount" name="amount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_percent_daily_value" class="form-label">% Daily Value</label>
+                        <input type="number" step="0.1" min="0" class="form-control" id="edit_percent_daily_value" name="percent_daily_value">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_per_serving" class="form-label">Measurement Basis</label>
+                        <select class="form-select" id="edit_per_serving" name="per_serving">
+                            <option value="true">Per Serving</option>
+                            <option value="false">Per 100g/ml</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter nutrients dropdown based on category selection
+    const nutrientCategory = document.getElementById('nutrient_category');
+    const nutrientSelect = document.getElementById('nutrient_id');
+    const originalOptions = Array.from(nutrientSelect.options);
+    const unitDisplay = document.getElementById('unit-display');
+    
+    nutrientCategory.addEventListener('change', function() {
+        const categoryId = this.value;
+        
+        // Clear current options (except the first placeholder)
+        while (nutrientSelect.options.length > 1) {
+            nutrientSelect.remove(1);
+        }
+        
+        // Add matching options
+        originalOptions.forEach(option => {
+            if (option.value === '') return; // Skip placeholder
+            
+            if (categoryId === '' || option.dataset.category === categoryId) {
+                nutrientSelect.add(option.cloneNode(true));
+            }
+        });
+    });
+    
+    // Update unit display when nutrient changes
+    nutrientSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.value !== '') {
+            unitDisplay.textContent = selectedOption.dataset.unit;
+            
+            // Auto-calculate percent daily value if available
+            const dailyValue = selectedOption.dataset.dailyValue;
+            const amountInput = document.getElementById('amount');
+            const percentInput = document.getElementById('percent_daily_value');
+            
+            if (dailyValue && amountInput.value !== '') {
+                const amount = parseFloat(amountInput.value);
+                if (!isNaN(amount) && dailyValue > 0) {
+                    const percent = (amount / parseFloat(dailyValue)) * 100;
+                    percentInput.value = percent.toFixed(1);
+                }
+            }
+        } else {
+            unitDisplay.textContent = 'g';
+        }
+    });
+    
+    // Auto-calculate percent when amount changes
+    document.getElementById('amount').addEventListener('input', function() {
+        const selectedOption = nutrientSelect.options[nutrientSelect.selectedIndex];
+        if (selectedOption.value !== '') {
+            const dailyValue = selectedOption.dataset.dailyValue;
+            const percentInput = document.getElementById('percent_daily_value');
+            
+            if (dailyValue && this.value !== '') {
+                const amount = parseFloat(this.value);
+                if (!isNaN(amount) && dailyValue > 0) {
+                    const percent = (amount / parseFloat(dailyValue)) * 100;
+                    percentInput.value = percent.toFixed(1);
+                }
+            }
+        }
+    });
+    
+    // Edit nutrient modal population
+    const editNutrientBtns = document.querySelectorAll('.edit-nutrient-btn');
+    editNutrientBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const nutrient = this.dataset.nutrient;
+            const amount = this.dataset.amount;
+            const percent = this.dataset.percent;
+            const perServing = this.dataset.perServing;
+            
+            document.getElementById('edit_nutrient_id').value = id;
+            document.getElementById('edit_nutrient_name').value = nutrient;
+            document.getElementById('edit_amount').value = amount;
+            document.getElementById('edit_percent_daily_value').value = percent;
+            
+            const perServingSelect = document.getElementById('edit_per_serving');
+            if (perServing === 'true') {
+                perServingSelect.value = 'true';
+            } else {
+                perServingSelect.value = 'false';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'admin/dashboard.html' %}
+{% block title %}Edit Serving Information - Recipe Keeper Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Edit Serving Information</h2>
+        <a href="{{ url_for('admin.manage_product_nutrients', id=product.id) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Nutrition
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{{ product.brand_name }} {{ product.ingredient_name }}</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('admin.edit_serving_info', id=product.id) }}" method="post">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="serving_size" class="form-label">Serving Size *</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="serving_size" name="serving_size" value="{{ serving_info.serving_size }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="serving_unit" class="form-label">Serving Unit *</label>
+                        <input type="text" class="form-control" id="serving_unit" name="serving_unit" value="{{ serving_info.serving_unit }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="servings_per_container" class="form-label">Servings Per Container</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="servings_per_container" name="servings_per_container" value="{{ serving_info.servings_per_container or '' }}">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('admin.manage_product_nutrients', id=product.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
